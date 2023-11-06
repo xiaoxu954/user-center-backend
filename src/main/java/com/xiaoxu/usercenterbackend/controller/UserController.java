@@ -96,5 +96,32 @@ public class UserController {
         return true;
     }
 
+    /**
+     * 获取当前用户
+     *
+     * @param request
+     * @return
+     */
+    @GetMapping("/current")
+    public User getCurrent(HttpServletRequest request) {
+        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+        User currentUser = (User) userObj;
+        if (currentUser == null) {
+            return null;
+        }
+        long userId = currentUser.getId();
+        //TODO:  校验用户是否合法
+        User user = userService.getById(userId);
+        return userService.getSafeUser(user);
+    }
+
+    @PostMapping("/logout")
+    public Integer userLogout(HttpServletRequest request) {
+
+        if (request == null) {
+            return null;
+        }
+        return userService.userLogout(request);
+    }
 }
 

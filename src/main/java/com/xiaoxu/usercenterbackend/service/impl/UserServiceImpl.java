@@ -7,6 +7,7 @@ import com.xiaoxu.usercenterbackend.model.domain.User;
 import com.xiaoxu.usercenterbackend.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.omg.PortableInterceptor.USER_EXCEPTION;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
@@ -51,7 +52,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         //1校验
         if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword)) {
             return -1;
-
         }
         if (userAccount.length() < 4) {
             return -1;
@@ -70,7 +70,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (!userPassword.equals(checkPassword)) {
             return -1;
         }
-
+        //账户不能重复
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("userAccount", userAccount);
+        long count = userMapper.selectCount(queryWrapper);
+        if (count > 0) {
+            return -1;
+        }
         // 2.加密
 
         String encryptPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
@@ -117,6 +123,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         // 2.加密
         String encryptPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
 
+
         // 查询用户是否存在
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("userAccount", userAccount);
@@ -144,6 +151,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      */
     @Override
     public User getSafeUser(User originUser) {
+        if (originUser == null) {
+            return null;
+        }
         User safeUser = new User();
         safeUser.setId(originUser.getId());
         safeUser.setUsername(originUser.getUsername());
@@ -158,7 +168,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return safeUser;
     }
 
+    @Override
+    public int userLogout(HttpServletRequest request) {
+        request.getSession().removeAttribute(USER_LOGIN_STATE);
+
+        return -1;
+    }
 }
+
+
+
 
 
 

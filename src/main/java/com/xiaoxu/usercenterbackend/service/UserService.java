@@ -33,10 +33,13 @@ public interface UserService extends IService<User> {
     User userLogin(String userAccount, String userPassword, HttpServletRequest request);
 
 
+
     /**
      * 用户脱敏方法
      * @param originUser
      * @return
      */
     User getSafeUser(User originUser);
+
+    int userLogout(HttpServletRequest request);
 }
