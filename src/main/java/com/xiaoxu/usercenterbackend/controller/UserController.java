@@ -64,18 +64,20 @@ public class UserController {
         return ResultUtil.success(user);
     }
 
+
+    //查询
     @GetMapping("/search")
     public BaseResponse<List<User>> searchUsers(String username, HttpServletRequest request) {
-        //仅管理员查询
-        if (isAdmin(request)) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        if (!isAdmin(request)) {
+            throw new BusinessException(ErrorCode.NO_AUTH);
         }
+
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         if (StringUtils.isNotBlank(username)) {
             queryWrapper.like("username", username);
+
         }
         List<User> userList = userService.list(queryWrapper);
-
         List<User> list = userList.stream().map(user -> userService.getSafetyUser(user)).collect(Collectors.toList());
         return ResultUtil.success(list);
     }
@@ -114,7 +116,7 @@ public class UserController {
         Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
         User currentUser = (User) userObj;
         if (currentUser == null) {
-            throw new BusinessException(ErrorCode.NOT_LOGIN);
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         long userId = currentUser.getId();
         //TODO:  校验用户是否合法
