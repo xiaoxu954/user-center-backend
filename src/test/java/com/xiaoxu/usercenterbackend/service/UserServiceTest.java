@@ -1,15 +1,11 @@
 package com.xiaoxu.usercenterbackend.service;
-import java.util.Date;
 
 import com.xiaoxu.usercenterbackend.model.domain.User;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.annotation.Resource;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 class UserServiceTest {
@@ -18,7 +14,7 @@ class UserServiceTest {
     private UserService userService;
 
     @Test
-    public void testAddUser(){
+    public void testAddUser() {
         User user = new User();
         user.setUsername("dogYupi");
         user.setUserAccount("123");
