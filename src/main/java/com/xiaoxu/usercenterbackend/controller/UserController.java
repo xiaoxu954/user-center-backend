@@ -59,9 +59,9 @@ public class UserController {
     }
 
     @GetMapping("/search")
-    public List<User> searchUsers(String username,HttpServletRequest request) {
+    public List<User> searchUsers(String username, HttpServletRequest request) {
         //仅管理员查询
-        if(isAdmin(request)){
+        if (isAdmin(request)) {
             return new ArrayList<>();
         }
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
@@ -76,21 +76,21 @@ public class UserController {
     }
 
     @PostMapping("/delete")
-    public boolean deleteUser(@RequestBody long id,HttpServletRequest request){
+    public boolean deleteUser(@RequestBody long id, HttpServletRequest request) {
         //仅管理员删除
-        if(isAdmin(request)){
+        if (isAdmin(request)) {
             return false;
         }
-        if( id < 0){
+        if (id < 0) {
             return false;
         }
         return userService.removeById(id);
     }
 
-    private boolean isAdmin(HttpServletRequest request){
+    private boolean isAdmin(HttpServletRequest request) {
         Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
         User user = (User) userObj;
-        if(user ==null || user.getUserRole() != ADMIN_ROLE){
+        if (user == null || user.getUserRole() != ADMIN_ROLE) {
             return false;
         }
         return true;
