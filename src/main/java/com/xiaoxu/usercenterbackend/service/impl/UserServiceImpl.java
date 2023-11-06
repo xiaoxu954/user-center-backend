@@ -135,7 +135,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             return null;
         }
         // 3.用户脱敏
-        User safeUser = getSafeUser(user);
+        User safeUser = getSafetyUser(user);
 
         // 4.记录用户的登录状态
         request.getSession().setAttribute(USER_LOGIN_STATE, user);
@@ -150,7 +150,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      * @return
      */
     @Override
-    public User getSafeUser(User originUser) {
+    public User getSafetyUser(User originUser) {
         if (originUser == null) {
             return null;
         }

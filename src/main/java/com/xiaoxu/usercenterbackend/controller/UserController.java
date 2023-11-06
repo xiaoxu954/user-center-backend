@@ -2,6 +2,8 @@ package com.xiaoxu.usercenterbackend.controller;
 
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.xiaoxu.usercenterbackend.common.BaseResponse;
+import com.xiaoxu.usercenterbackend.common.ResultUtil;
 import com.xiaoxu.usercenterbackend.model.domain.request.UserLoginRequest;
 import com.xiaoxu.usercenterbackend.model.domain.request.UserRegisterRequest;
 import com.xiaoxu.usercenterbackend.model.domain.User;
@@ -29,7 +31,7 @@ public class UserController {
     private UserService userService;
 
     @PostMapping("/register")
-    public Long userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
+    public BaseResponse<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
         if (userRegisterRequest == null) {
             return null;
         }
@@ -39,11 +41,12 @@ public class UserController {
         if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword)) {
             return null;
         }
-        return userService.userRegister(userAccount, userPassword, checkPassword);
+        Long result = userService.userRegister(userAccount, userPassword, checkPassword);
+        return ResultUtil.success(result);
     }
 
     @PostMapping("/login")
-    public User userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
+    public BaseResponse<User> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
 
         if (userLoginRequest == null) {
             return null;
@@ -55,11 +58,12 @@ public class UserController {
             return null;
 
         }
-        return userService.userLogin(userAccount, userPassword, request);
+        User user = userService.userLogin(userAccount, userPassword, request);
+        return ResultUtil.success(user);
     }
 
     @GetMapping("/search")
-    public List<User> searchUsers(String username, HttpServletRequest request) {
+    public BaseResponse<List<User>> searchUsers(String username, HttpServletRequest request) {
         //仅管理员查询
         if (isAdmin(request)) {
             return new ArrayList<>();
@@ -70,21 +74,22 @@ public class UserController {
         }
         List<User> userList = userService.list(queryWrapper);
 
-        return userList.stream().map(user -> {
-            return userService.getSafeUser(user);
-        }).collect(Collectors.toList());
+        List<User> list =  userList.stream().map(user -> userService.getSafetyUser(user)).collect(Collectors.toList());
+        return ResultUtil.success(list);
     }
 
     @PostMapping("/delete")
-    public boolean deleteUser(@RequestBody long id, HttpServletRequest request) {
+    public BaseResponse<Boolean> deleteUser(@RequestBody long id, HttpServletRequest request) {
         //仅管理员删除
         if (isAdmin(request)) {
-            return false;
+            return null;
         }
         if (id < 0) {
-            return false;
+            return null;
         }
-        return userService.removeById(id);
+        boolean result = userService.removeById(id);
+        return ResultUtil.success(result);
+
     }
 
     private boolean isAdmin(HttpServletRequest request) {
@@ -103,7 +108,7 @@ public class UserController {
      * @return
      */
     @GetMapping("/current")
-    public User getCurrent(HttpServletRequest request) {
+    public BaseResponse<User> getCurrent(HttpServletRequest request) {
         Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
         User currentUser = (User) userObj;
         if (currentUser == null) {
@@ -112,16 +117,18 @@ public class UserController {
         long userId = currentUser.getId();
         //TODO:  校验用户是否合法
         User user = userService.getById(userId);
-        return userService.getSafeUser(user);
+        User safeUser = userService.getSafetyUser(user);
+        return ResultUtil.success(safeUser);
     }
 
     @PostMapping("/logout")
-    public Integer userLogout(HttpServletRequest request) {
+    public BaseResponse<Integer> userLogout(HttpServletRequest request) {
 
         if (request == null) {
             return null;
         }
-        return userService.userLogout(request);
+        int result = userService.userLogout(request);
+        return ResultUtil.success(result);
     }
 }
 
