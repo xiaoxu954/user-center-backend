@@ -3,7 +3,9 @@ package com.xiaoxu.usercenterbackend.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.xiaoxu.usercenterbackend.common.BaseResponse;
+import com.xiaoxu.usercenterbackend.common.ErrorCode;
 import com.xiaoxu.usercenterbackend.common.ResultUtil;
+import com.xiaoxu.usercenterbackend.exception.BusinessException;
 import com.xiaoxu.usercenterbackend.model.domain.request.UserLoginRequest;
 import com.xiaoxu.usercenterbackend.model.domain.request.UserRegisterRequest;
 import com.xiaoxu.usercenterbackend.model.domain.User;
@@ -33,13 +35,13 @@ public class UserController {
     @PostMapping("/register")
     public BaseResponse<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
         if (userRegisterRequest == null) {
-            return null;
+            throw new BusinessException(ErrorCode.NULL_ERROR);
         }
         String userAccount = userRegisterRequest.getUserAccount();
         String userPassword = userRegisterRequest.getUserPassword();
         String checkPassword = userRegisterRequest.getCheckPassword();
         if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword)) {
-            return null;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         Long result = userService.userRegister(userAccount, userPassword, checkPassword);
         return ResultUtil.success(result);
@@ -66,7 +68,7 @@ public class UserController {
     public BaseResponse<List<User>> searchUsers(String username, HttpServletRequest request) {
         //仅管理员查询
         if (isAdmin(request)) {
-            return new ArrayList<>();
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         if (StringUtils.isNotBlank(username)) {
@@ -74,7 +76,7 @@ public class UserController {
         }
         List<User> userList = userService.list(queryWrapper);
 
-        List<User> list =  userList.stream().map(user -> userService.getSafetyUser(user)).collect(Collectors.toList());
+        List<User> list = userList.stream().map(user -> userService.getSafetyUser(user)).collect(Collectors.toList());
         return ResultUtil.success(list);
     }
 
@@ -82,10 +84,10 @@ public class UserController {
     public BaseResponse<Boolean> deleteUser(@RequestBody long id, HttpServletRequest request) {
         //仅管理员删除
         if (isAdmin(request)) {
-            return null;
+            throw new BusinessException(ErrorCode.NO_AUTH);
         }
         if (id < 0) {
-            return null;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         boolean result = userService.removeById(id);
         return ResultUtil.success(result);
@@ -112,7 +114,7 @@ public class UserController {
         Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
         User currentUser = (User) userObj;
         if (currentUser == null) {
-            return null;
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
         long userId = currentUser.getId();
         //TODO:  校验用户是否合法
@@ -125,7 +127,7 @@ public class UserController {
     public BaseResponse<Integer> userLogout(HttpServletRequest request) {
 
         if (request == null) {
-            return null;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         int result = userService.userLogout(request);
         return ResultUtil.success(result);

@@ -2,12 +2,13 @@ package com.xiaoxu.usercenterbackend.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.xiaoxu.usercenterbackend.common.ErrorCode;
+import com.xiaoxu.usercenterbackend.exception.BusinessException;
 import com.xiaoxu.usercenterbackend.mapper.UserMapper;
 import com.xiaoxu.usercenterbackend.model.domain.User;
 import com.xiaoxu.usercenterbackend.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.omg.PortableInterceptor.USER_EXCEPTION;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
@@ -51,15 +52,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     public long userRegister(String userAccount, String userPassword, String checkPassword) {
         //1校验
         if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword)) {
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"参数为空");
         }
         if (userAccount.length() < 4) {
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"用户账户过短");
         }
         //密码不能超过八位
         if (userPassword.length() < 8 || checkPassword.length() < 8) {
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"用户密码过短");
         }
+
         // 账户不能包含特殊字符
         String validPattern = "[`~!@#$%^&*()+=|{}':;',\\\\[\\\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？]";
         Matcher matcher = Pattern.compile(validPattern).matcher(userAccount);
@@ -75,7 +77,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         queryWrapper.eq("userAccount", userAccount);
         long count = userMapper.selectCount(queryWrapper);
         if (count > 0) {
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"账号重复");
         }
         // 2.加密
 
